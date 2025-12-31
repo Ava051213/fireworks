@@ -84,15 +84,17 @@ function initWorkerMode(canvas, fpsElement) {
 
     // 自动发射逻辑 (在主线程控制节奏，发送指令给 Worker)
     function autoFire() {
-        if (document.hidden) return;
-        
-        const x = random(window.innerWidth * 0.1, window.innerWidth * 0.9);
-        const y = random(window.innerHeight * 0.1, window.innerHeight * 0.5);
-        
-        worker.postMessage({
-            type: 'click',
-            payload: { x, y }
-        });
+        // 即使页面隐藏，也继续递归调用 setTimeout，只是不执行发射逻辑
+        // 这样可以保证切回页面时自动发射能立即恢复
+        if (!document.hidden) {
+            const x = random(window.innerWidth * 0.1, window.innerWidth * 0.9);
+            const y = random(window.innerHeight * 0.1, window.innerHeight * 0.5);
+            
+            worker.postMessage({
+                type: 'click',
+                payload: { x, y }
+            });
+        }
         
         // 发射间隔更随机，同时允许更快的发射上限
         setTimeout(autoFire, random(CONFIG.autoFireworkDelay * 0.2, CONFIG.autoFireworkDelay * 1.8));
@@ -143,10 +145,12 @@ async function initMainThreadMode(canvas, fpsElement) {
     });
 
     function autoFire() {
-        if (document.hidden) return;
-        const x = random(canvas.width * 0.1, canvas.width * 0.9);
-        const y = random(canvas.height * 0.1, canvas.height * 0.5);
-        renderer.addFirework(x, y);
+        // 即使页面隐藏，也继续递归调用 setTimeout，只是不执行发射逻辑
+        if (!document.hidden) {
+            const x = random(canvas.width * 0.1, canvas.width * 0.9);
+            const y = random(canvas.height * 0.1, canvas.height * 0.5);
+            renderer.addFirework(x, y);
+        }
         // 发射间隔更随机，同时允许更快的发射上限
         setTimeout(autoFire, random(CONFIG.autoFireworkDelay * 0.2, CONFIG.autoFireworkDelay * 1.8));
     }

@@ -39,7 +39,7 @@ export class Renderer {
         this.starTime = 0;
         this.buildings = [];
         this.offscreenCanvas = null;
-        this.offscreenStars = null;
+        this.offscreenStarLayers = []; // 改为数组支持分层闪烁
         this.offscreenSkyline = null;
 
         this.resize(this.width, this.height);
@@ -67,31 +67,48 @@ export class Renderer {
 
     initOffscreenCanvases() {
         try {
+            const layerCount = 6; // 增加到6层，使闪烁看起来更随机
+            this.offscreenStarLayers = [];
+            
             if (typeof OffscreenCanvas !== 'undefined') {
-                this.offscreenStars = new OffscreenCanvas(this.width, this.height);
+                for (let i = 0; i < layerCount; i++) {
+                    this.offscreenStarLayers.push(new OffscreenCanvas(this.width, this.height));
+                }
                 this.offscreenSkyline = new OffscreenCanvas(this.width, this.height);
             } else if (typeof document !== 'undefined') {
-                this.offscreenStars = document.createElement('canvas');
-                this.offscreenStars.width = this.width;
-                this.offscreenStars.height = this.height;
+                for (let i = 0; i < layerCount; i++) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = this.width;
+                    canvas.height = this.height;
+                    this.offscreenStarLayers.push(canvas);
+                }
                 this.offscreenSkyline = document.createElement('canvas');
                 this.offscreenSkyline.width = this.width;
                 this.offscreenSkyline.height = this.height;
             }
         } catch (e) {
             console.warn('OffscreenCanvas not supported, falling back to real-time rendering');
-            this.offscreenStars = null;
+            this.offscreenStarLayers = [];
             this.offscreenSkyline = null;
         }
     }
 
     renderStarsToOffscreen() {
-        if (!this.offscreenStars || this.stars.length === 0) return;
-        const ctx = this.offscreenStars.getContext('2d');
-        ctx.clearRect(0, 0, this.width, this.height);
+        if (this.offscreenStarLayers.length === 0 || this.stars.length === 0) return;
         
-        ctx.fillStyle = '#ffffff';
-        for (const s of this.stars) {
+        const layerCount = this.offscreenStarLayers.length;
+        const layerContexts = this.offscreenStarLayers.map(canvas => canvas.getContext('2d'));
+        
+        // 清空所有层
+        layerContexts.forEach(ctx => ctx.clearRect(0, 0, this.width, this.height));
+        
+        for (let i = 0; i < this.stars.length; i++) {
+            const s = this.stars[i];
+            // 将星星分配到不同的层
+            const layerIndex = i % layerCount;
+            const ctx = layerContexts[layerIndex];
+            
+            ctx.fillStyle = '#ffffff';
             ctx.globalAlpha = s.baseAlpha;
             ctx.beginPath();
             ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
@@ -282,14 +299,14 @@ export class Renderer {
     }
 
     drawStars() {
-        if (!this.offscreenStars) {
+        if (this.offscreenStarLayers.length === 0) {
             // 回退到实时绘制
             if (!this.stars || this.stars.length === 0) return;
             const ctx = this.ctx;
-            this.starTime += 0.01;
+            this.starTime += 0.005; // 降低基础频率
             for (const s of this.stars) {
                 const t = this.starTime * s.twinkleSpeed + s.phase;
-                const alpha = s.baseAlpha * (0.5 + 0.5 * Math.sin(t));
+                const alpha = s.baseAlpha * (0.6 + 0.4 * Math.sin(t));
                 ctx.globalAlpha = alpha;
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
@@ -300,10 +317,26 @@ export class Renderer {
             return;
         }
 
-        // 即使是预渲染，也可以通过改变 globalAlpha 来实现整体闪烁感，性能开销极小
-        this.starTime += 0.01;
-        this.ctx.globalAlpha = 0.7 + 0.3 * Math.sin(this.starTime);
-        this.ctx.drawImage(this.offscreenStars, 0, 0);
+        // 分层预渲染闪烁逻辑：每层使用不同的相位和频率
+        this.starTime += 0.005; // 降低基础频率
+        const layerCount = this.offscreenStarLayers.length;
+        
+        for (let i = 0; i < layerCount; i++) {
+            // 为每一层计算独特的透明度变化
+            // 使用质数相关的频率偏移，减少周期重合感
+            const phase = i * (Math.PI * 2 / layerCount) * 1.5;
+            const freqMultiplier = 0.8 + (i * 0.3) % 1.5; 
+            
+            // 使用更加非线性的闪烁感
+            let layerAlpha = 0.6 + 0.4 * Math.sin(this.starTime * freqMultiplier + phase);
+            
+            // 进一步拉开层次：有些层更暗，有些层闪烁幅度更大
+            if (i % 2 === 0) layerAlpha *= 0.8;
+            
+            this.ctx.globalAlpha = layerAlpha;
+            this.ctx.drawImage(this.offscreenStarLayers[i], 0, 0);
+        }
+        
         this.ctx.globalAlpha = 1;
     }
 
