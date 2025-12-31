@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新年烟花特效 - 升级版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 100%;
+            height: 100vh;
+            background: #000428; /* 纯色背景，渐变由 Canvas 绘制以提高性能 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* UI 层 */
+        .ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 让点击穿透到 Canvas */
+        }
+
+        .title {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 4rem;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 
+                0 0 10px rgba(255, 215, 0, 0.8),
+                0 0 20px rgba(255, 215, 0, 0.6),
+                0 0 30px rgba(255, 215, 0, 0.4);
+            letter-spacing: 2px;
+            z-index: 10;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: #fff;
+            opacity: 0.8;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .info {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: #ffd700;
+            font-size: 14px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+            line-height: 1.6;
+        }
+
+        .fps {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #00ff00;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        /* 简单的键盘提示 */
+        .controls-hint {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            text-align: left;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .controls-hint p {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 2.5rem; top: 30px; }
+            .controls-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="ui-layer">
+        <div class="title">
+            新年快乐
+            <div class="subtitle">Happy New Year 2026</div>
+        </div>
+        
+        <div class="controls-hint">
+            <p>⌨️ <strong>快捷键:</strong></p>
+            <p>空格键: 切换颜色主题</p>
+            <p>1-5: 切换烟花形状</p>
+        </div>
+
+        <div class="info">
+            点击屏幕发射烟花 · 自动模式运行中<br>
+            <span style="opacity: 0.7; font-size: 0.9em">高性能对象池引擎驱动</span>
+        </div>
+        
+        <div class="fps">FPS: <span id="fps">0</span></div>
+    </div>
+
+    <!-- 引入主程序 (ES Module) -->
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>
