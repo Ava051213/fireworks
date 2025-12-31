@@ -328,7 +328,7 @@ export class Renderer {
 
         const activeParticles = this.particlePool.getActiveObjects();
 
-        if (CONFIG.showStars && (!this.lowMode || this.fps > 40) && activeParticles.length < 800) {
+        if (CONFIG.showStars) {
             this.drawStars();
         }
         if (CONFIG.skylineEnabled) {
@@ -414,7 +414,7 @@ export class Renderer {
                 this.lowMode = true;
                 CONFIG.secondaryEnabled = false;
                 CONFIG.enableGlow = false;
-                CONFIG.showStars = false;
+                // CONFIG.showStars = false; // 保持星空显示
                 CONFIG.maxRockets = Math.max(4, Math.floor(this.baseMaxRockets / 2));
                 if (CONFIG.secondaryChildCount > 12) {
                     CONFIG.secondaryChildCount = 12;

@@ -108,6 +108,24 @@
             .title { font-size: 2.5rem; top: 30px; }
             .controls-hint { display: none; }
         }
+
+        /* 底部链接 */
+        .hidden-link {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.5); /* 恢复正常透明度 */
+            text-decoration: none;
+            pointer-events: auto;
+            z-index: 5;
+            transition: color 0.3s;
+            font-family: monospace;
+        }
+
+        .hidden-link:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
     </style>
 </head>
 <body>
@@ -131,6 +149,7 @@
         </div>
         
         <div class="fps">FPS: <span id="fps">0</span></div>
+        <a href="https://github.com/Ava051213/yearlog-2025" target="_blank" class="hidden-link">https://github.com/Ava051213/yearlog-2025</a>
     </div>
 
     <!-- 引入主程序 (ES Module) -->
